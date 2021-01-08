@@ -17,6 +17,7 @@ router.get(
     const payload = {
       id: req.user._id,
       name: req.user.name,
+      posts: req.user.posts,
     };
     //sign token
     jwt.sign(

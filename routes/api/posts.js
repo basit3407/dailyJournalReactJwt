@@ -8,7 +8,7 @@ const validatePostInput = require("../../validation/post");
 // Load User model
 const User = require("../../models/User");
 
-// @route POST api/user/:userId/post/add/:p     p = new|| duplicate
+// @route POST api/user/:userId/posts/add/:p     p = new|| duplicate
 // @desc create new post (if p = new, gives error if title already exists)
 // @access Authenticated user
 router.post("/add/:p", (req, res, next) => {
@@ -19,26 +19,14 @@ router.post("/add/:p", (req, res, next) => {
   if (!isValid) return res.status(400).json(errors);
 
   const { userId, p } = req.params;
-  addPost(p, userId, req, res, next);
+  try {
+    addPost(p, userId, req, res);
+  } catch (e) {
+    next(e);
+  }
 });
 
-// @route GET api/user/:userId/post/:postId
-// @desc send selected post
-// @access authenticated user
-router.get("/:postId", (req, res, next) => {
-  const { userId, postId } = req.params;
-  User.findById(userId, (err, user) => {
-    if (!err) {
-      const selectedPost = user.posts.id(postId);
-
-      selectedPost
-        ? res.json(selectedPost)
-        : res.status(404).json({ error: "this post doesnt exist" });
-    } else next(err);
-  });
-});
-
-// @route PUT api/user/:userId/post/:postId/:p    p = oriignal || duplicate
+// @route PUT api/users/:userId/post/:postId/:p    p = original || duplicate
 // @desc edit post (if p = new, gives error if new title already exists)
 // @access Authenticated user
 router.put("/:postId/update/:p", (req, res, next) => {
@@ -49,10 +37,14 @@ router.put("/:postId/update/:p", (req, res, next) => {
   if (!isValid) return res.status(400).json(errors);
 
   const { userId, postId, p } = req.params;
-  editPost(p, userId, postId, req, res, next);
+  try {
+    editPost(p, userId, postId, req, res);
+  } catch (e) {
+    next(e);
+  }
 });
 
-// @route DELETE api/user/:userId/post/:postId
+// @route DELETE api/users/:userId/post/:postId
 // @desc delete post
 // @access Authenticated user
 router.delete("/:postId", (req, res, next) => {
@@ -62,7 +54,7 @@ router.delete("/:postId", (req, res, next) => {
     if (!err) {
       const deletedPost = user.posts.id(postId);
       deletedPost.remove();
-      user.save((error, user) => (error ? next(error) : res.json(user)));
+      user.save((error, user) => (error ? next(error) : res.json(user.posts)));
     } else next(err);
   });
 });

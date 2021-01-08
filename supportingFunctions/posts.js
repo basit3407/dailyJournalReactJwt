@@ -2,44 +2,31 @@
 const User = require("../models/User");
 
 // create new post
-function addPost(id, userId, req, res, next) {
+function addPost(id, userId, req, res) {
   switch (id) {
     //create post with new title or give error if title is duplicate
     case "new":
       User.findById(userId, (err, user) => {
-        if (!err) {
+        if (err) throw err;
+        else {
           //   check if post title exsists or not.
           const existingPosts = user.posts.find(
             (existingPost) => existingPost.title === req.body.title
           );
-
           if (existingPosts) {
             res.status(409).json({ error: "This post title already existis" });
           } else {
-            user.posts.push({
-              title: req.body.title,
-              content: req.body.content,
-            });
-            user.save((error, user) =>
-              err ? next(error) : res.json(user.posts)
-            );
+            saveAdd(user);
           }
-        } else {
-          next(err);
         }
       });
       break;
     case "duplicate":
       //create post with duplicate title
       User.findById(userId, (err, user) => {
-        if (!err) {
-          user.posts.push({
-            title: req.body.title,
-            content: req.body.content,
-          });
-          user.save((error, user) => (error ? next(error) : res.json(user)));
-        } else {
-          next(err);
+        if (err) throw err;
+        else {
+          saveAdd(user);
         }
       });
       break;
@@ -47,15 +34,24 @@ function addPost(id, userId, req, res, next) {
       res.status(404);
       break;
   }
+
+  function saveAdd(user) {
+    user.posts.push({
+      title: req.body.title,
+      content: req.body.content,
+    });
+    savePost(user, res);
+  }
 }
 
 // edit post
-function editPost(id, userId, postId, req, res, next) {
+function editPost(id, userId, postId, req, res) {
   switch (id) {
     //edit post to new title or give error if new title is duplicate
     case "original":
       User.findById(userId, (err, user) => {
-        if (!err) {
+        if (err) throw err;
+        else {
           //  check if title exists previously
           const existingPosts = user.posts.filter(
             (existingPost) => existingPost.title === req.body.title
@@ -70,38 +66,21 @@ function editPost(id, userId, postId, req, res, next) {
             if (check.length) {
               res.status(409).json({ error: "This title already exists" });
             } else {
-              const previousPost = user.posts.id(postId);
-              previousPost.title = req.body.title;
-              previousPost.content = req.body.content;
-
-              user.save((error, user) =>
-                error ? next(error) : res.json(user)
-              );
+              saveEdit(user);
             }
           } else {
-            const previousPost = user.posts.id(postId);
-            previousPost.title = req.body.title;
-            previousPost.content = req.body.content;
-
-            user.save((error, user) =>
-              error ? next(error, user) : res.json(user)
-            );
+            saveEdit(user);
           }
-        } else {
-          next(err);
         }
       });
       break;
     //edit post and save duplicate titile
     case "duplicate":
       User.findById(userId, (err, user) => {
-        if (!err) {
-          const previousPost = user.posts.id(postId);
-
-          previousPost.title = req.body.title;
-          previousPost.content = req.body.content;
-
-          user.save((error, user) => (error ? next(error) : res.json(user)));
+        if (err) {
+          throw err;
+        } else {
+          saveEdit(user);
         }
       });
       break;
@@ -109,6 +88,21 @@ function editPost(id, userId, postId, req, res, next) {
       res.status(404);
       break;
   }
+
+  function saveEdit(user) {
+    const previousPost = user.posts.id(postId);
+    previousPost.title = req.body.title;
+    previousPost.content = req.body.content;
+
+    savePost(user, res);
+  }
+}
+
+function savePost(user, res) {
+  user.save((error, user) => {
+    if (error) throw error;
+    res.json(user.posts);
+  });
 }
 
 module.exports = { addPost, editPost };

@@ -56,7 +56,7 @@ router.post("/login", (req, res, next) => {
   User.findOne({ email: email }, (err, user) => {
     if (err) return next(err);
     // Check if user exists
-    if (!user) return res.status(404).json({ emailnotfound: "User not found" });
+    if (!user) return res.status(404).json({ email: "User not found" });
     // Check password
     bcrypt.compare(password, user.password, (err, success) => {
       if (err) return next(err);
@@ -66,6 +66,7 @@ router.post("/login", (req, res, next) => {
         const payload = {
           id: user._id,
           name: user.name,
+          posts: user.posts,
         };
         //sign token
         jwt.sign(
@@ -79,10 +80,7 @@ router.post("/login", (req, res, next) => {
             res.json({ success: true, token: `Bearer ${token}` });
           }
         );
-      } else
-        return res
-          .status(400)
-          .json({ passwordincorrect: "Password incorrect" });
+      } else return res.status(400).json({ password: "Password incorrect" });
     });
   });
 });
