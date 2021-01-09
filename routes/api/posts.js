@@ -18,12 +18,27 @@ router.post("/add/:p", (req, res, next) => {
   // Check validation
   if (!isValid) return res.status(400).json(errors);
 
-  const { userId, p } = req.params;
   try {
-    addPost(p, userId, req, res);
+    addPost(req, res);
   } catch (e) {
     next(e);
   }
+});
+
+// @route GET api/user/:userId/posts/:postId
+// @desc get post
+// @access Authenticated user
+
+router.get("/:postId", (req, res, next) => {
+  const { userId, postId } = req.params;
+  User.findById(userId, (err, user) => {
+    if (err) return next(err);
+    if (!user) return res.status(404).json("user doesn't exist");
+
+    const post = user.posts.id(postId);
+    if (!post) return res.status(404).json("post doesn't exist");
+    res.json(user.posts.id(postId));
+  });
 });
 
 // @route PUT api/users/:userId/post/:postId/:p    p = original || duplicate
@@ -36,9 +51,8 @@ router.put("/:postId/update/:p", (req, res, next) => {
   // Check validation
   if (!isValid) return res.status(400).json(errors);
 
-  const { userId, postId, p } = req.params;
   try {
-    editPost(p, userId, postId, req, res);
+    editPost(req, res);
   } catch (e) {
     next(e);
   }
@@ -54,7 +68,7 @@ router.delete("/:postId", (req, res, next) => {
     if (!err) {
       const deletedPost = user.posts.id(postId);
       deletedPost.remove();
-      user.save((error, user) => (error ? next(error) : res.json(user.posts)));
+      user.save((error) => (error ? next(error) : res.json("user deleted")));
     } else next(err);
   });
 });

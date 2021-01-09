@@ -2,8 +2,13 @@
 const User = require("../models/User");
 
 // create new post
-function addPost(id, userId, req, res) {
-  switch (id) {
+function addPost(req, res) {
+  const {
+    body: { title, content },
+    params: { userId, p },
+  } = req;
+
+  switch (p) {
     //create post with new title or give error if title is duplicate
     case "new":
       User.findById(userId, (err, user) => {
@@ -11,7 +16,7 @@ function addPost(id, userId, req, res) {
         else {
           //   check if post title exsists or not.
           const existingPosts = user.posts.find(
-            (existingPost) => existingPost.title === req.body.title
+            (existingPost) => existingPost.title === title
           );
           if (existingPosts) {
             res.status(409).json({ error: "This post title already existis" });
@@ -37,16 +42,20 @@ function addPost(id, userId, req, res) {
 
   function saveAdd(user) {
     user.posts.push({
-      title: req.body.title,
-      content: req.body.content,
+      title: title,
+      content: content,
     });
     savePost(user, res);
   }
 }
 
 // edit post
-function editPost(id, userId, postId, req, res) {
-  switch (id) {
+function editPost(req, res) {
+  const {
+    body: { title, content },
+    params: { userId, p, postId },
+  } = req;
+  switch (p) {
     //edit post to new title or give error if new title is duplicate
     case "original":
       User.findById(userId, (err, user) => {
@@ -54,7 +63,7 @@ function editPost(id, userId, postId, req, res) {
         else {
           //  check if title exists previously
           const existingPosts = user.posts.filter(
-            (existingPost) => existingPost.title === req.body.title
+            (existingPost) => existingPost.title === title
           );
 
           //  exclude the title of the selected post
@@ -91,17 +100,17 @@ function editPost(id, userId, postId, req, res) {
 
   function saveEdit(user) {
     const previousPost = user.posts.id(postId);
-    previousPost.title = req.body.title;
-    previousPost.content = req.body.content;
+    previousPost.title = title;
+    previousPost.content = content;
 
     savePost(user, res);
   }
 }
 
 function savePost(user, res) {
-  user.save((error, user) => {
+  user.save((error) => {
     if (error) throw error;
-    res.json(user.posts);
+    res.json("post saved");
   });
 }
 

@@ -19,14 +19,16 @@ router.post("/register", (req, res, next) => {
   // Check validation
   if (!isValid) return res.status(400).json(errors);
 
-  User.findOne({ email: req.body.email }, (err, user) => {
+  const { name, email, password } = req.body;
+
+  User.findOne({ email: email }, (err, user) => {
     if (err) return next(err);
     if (user) return res.status(400).json({ email: "User already exists" });
 
     const newUser = new User({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
+      name: name,
+      email: email,
+      password: password,
     });
 
     // Hash password before saving in database
@@ -66,7 +68,6 @@ router.post("/login", (req, res, next) => {
         const payload = {
           id: user._id,
           name: user.name,
-          posts: user.posts,
         };
         //sign token
         jwt.sign(
@@ -82,6 +83,20 @@ router.post("/login", (req, res, next) => {
         );
       } else return res.status(400).json({ password: "Password incorrect" });
     });
+  });
+});
+
+// @route GET api/users/:userId/home
+// @desc get posts of user
+// @access Public
+
+router.get("/:userId/home", (req, res, next) => {
+  const { userId } = req.params;
+
+  User.findById(userId, (err, user) => {
+    if (err) return next(err);
+    if (!user) return res.status(404).json("user doesn't exist");
+    res.json(user.posts);
   });
 });
 
