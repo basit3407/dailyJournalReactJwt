@@ -11,10 +11,17 @@ const postSchema = new Schema({
     type: String,
     required: true,
   },
+  date: {
+    type: Date,
+  },
 });
 
 // Create User Schema
 const UserSchema = new Schema({
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   name: {
     type: String,
     required: true,
@@ -30,10 +37,6 @@ const UserSchema = new Schema({
   googleId: String,
   facebookId: String,
   posts: [postSchema],
-  date: {
-    type: Date,
-    default: Date.now,
-  },
 });
 
 const User = mongoose.model("users", UserSchema);

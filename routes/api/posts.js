@@ -65,11 +65,11 @@ router.delete("/:postId", (req, res, next) => {
   const { userId, postId } = req.params;
 
   User.findById(userId, (err, user) => {
-    if (!err) {
-      const deletedPost = user.posts.id(postId);
-      deletedPost.remove();
-      user.save((error) => (error ? next(error) : res.json("user deleted")));
-    } else next(err);
+    if (err) return next(err);
+
+    const deletedPost = user.posts.id(postId);
+    deletedPost.remove();
+    user.save((error) => (error ? next(error) : res.json("user deleted")));
   });
 });
 

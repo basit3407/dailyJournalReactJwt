@@ -4,7 +4,7 @@ const User = require("../models/User");
 // create new post
 function addPost(req, res) {
   const {
-    body: { title, content },
+    body: { title, content, date },
     params: { userId, p },
   } = req;
 
@@ -13,26 +13,23 @@ function addPost(req, res) {
     case "new":
       User.findById(userId, (err, user) => {
         if (err) throw err;
-        else {
-          //   check if post title exsists or not.
-          const existingPosts = user.posts.find(
-            (existingPost) => existingPost.title === title
-          );
-          if (existingPosts) {
-            res.status(409).json({ error: "This post title already existis" });
-          } else {
-            saveAdd(user);
-          }
-        }
+        //   check if post title exsists or not.
+        const existingPosts = user.posts.find(
+          (existingPost) => existingPost.title === title
+        );
+        if (existingPosts)
+          return res
+            .status(409)
+            .json({ error: "This post title already existis" });
+
+        saveAdd(user);
       });
       break;
     case "duplicate":
       //create post with duplicate title
       User.findById(userId, (err, user) => {
         if (err) throw err;
-        else {
-          saveAdd(user);
-        }
+        saveAdd(user);
       });
       break;
     default:
@@ -44,6 +41,7 @@ function addPost(req, res) {
     user.posts.push({
       title: title,
       content: content,
+      date: date,
     });
     savePost(user, res);
   }
@@ -52,7 +50,7 @@ function addPost(req, res) {
 // edit post
 function editPost(req, res) {
   const {
-    body: { title, content },
+    body: { title, content, date },
     params: { userId, p, postId },
   } = req;
   switch (p) {
@@ -60,37 +58,29 @@ function editPost(req, res) {
     case "original":
       User.findById(userId, (err, user) => {
         if (err) throw err;
-        else {
-          //  check if title exists previously
-          const existingPosts = user.posts.filter(
-            (existingPost) => existingPost.title === title
+        //  check if title exists previously
+        const existingPosts = user.posts.filter(
+          (existingPost) => existingPost.title === title
+        );
+        //  exclude the title of the selected post
+        if (existingPosts.length) {
+          const check = existingPosts.filter(
+            (existingPost) => !existingPost._id.equals(postId)
           );
 
-          //  exclude the title of the selected post
-          if (existingPosts.length) {
-            const check = existingPosts.filter(
-              (existingPost) => !existingPost._id.equals(postId)
-            );
-
-            if (check.length) {
-              res.status(409).json({ error: "This title already exists" });
-            } else {
-              saveEdit(user);
-            }
-          } else {
-            saveEdit(user);
-          }
+          if (check.length)
+            return res
+              .status(409)
+              .json({ postAlreadyExist: "This post title already exists" });
         }
+        saveEdit(user);
       });
       break;
     //edit post and save duplicate titile
     case "duplicate":
       User.findById(userId, (err, user) => {
-        if (err) {
-          throw err;
-        } else {
-          saveEdit(user);
-        }
+        if (err) throw err;
+        saveEdit(user);
       });
       break;
     default:
@@ -102,6 +92,7 @@ function editPost(req, res) {
     const previousPost = user.posts.id(postId);
     previousPost.title = title;
     previousPost.content = content;
+    previousPost.date = date;
 
     savePost(user, res);
   }

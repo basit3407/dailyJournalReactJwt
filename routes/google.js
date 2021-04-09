@@ -19,9 +19,12 @@ router.get(
   // on Success send token
   function (req, res, next) {
     // Create JWT Payload
+    const { id, name, posts } = req.user;
+
     const payload = {
-      id: req.user._id,
-      name: req.user.name,
+      id: id,
+      name: name,
+      posts: posts,
     };
     //sign token
     jwt.sign(
