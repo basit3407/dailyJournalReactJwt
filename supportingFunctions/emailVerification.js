@@ -15,12 +15,12 @@ const sendEmail = (req, res) => {
   const transporter = nodemailer.createTransport({
     service: "Gmail",
     auth: {
-      user: "basit3407@gmail.com",
-      pass: "Kmha@3407",
+      user: "basit.prevail@gmail.com,",
+      pass: "Pe@14012020",
     },
   });
   const mailOptions = {
-    from: "basit3407@gmail.com",
+    from: "basit.prevail@gmail.com",
     to: email,
     subject: "Account Verification Link",
     text:
