@@ -6,7 +6,7 @@ const sendEmail = (req, res) => {
   const { name, email } = req.body;
   // generate email Verification token and save
   const token = new Token({
-    token: cryptoRandomString({ length: 128 }).toString("hex"),
+    token: cryptoRandomString({ length: 128 }).toString(),
   });
   token.save((err) => {
     if (err) throw err;
